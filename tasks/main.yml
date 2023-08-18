@@ -20,6 +20,11 @@
   tags:
     - wg-install
 
+- name: Checking owner of proc to see if we should modprobe
+  ansible.builtin.stat:
+    path: /proc
+  register: proc
+
 - name: Enable WireGuard kernel module
   community.general.modprobe:
     name: wireguard
@@ -31,7 +36,7 @@
   failed_when: wireguard__register_module_enabled is failure
   tags:
     - wg-install
-  when: not ansible_os_family == 'Darwin'
+  when: not ansible_os_family == 'Darwin' and (proc.stat.uid == 0 and proc.stat.gid == 0)
 
 - name: Set default for WireGuard interface restart behavior
   ansible.builtin.set_fact:
